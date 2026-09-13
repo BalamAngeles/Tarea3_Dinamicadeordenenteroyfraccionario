@@ -1,0 +1,286 @@
+%==============================================================================
+% 5. RESULTADOS Y DISCUSION
+%   -- Version corregida y adaptada a los resultados obtenidos mediante
+%      ajuste por MINIMOS CUADRADOS (Python/NumPy/SciPy), en sustitucion
+%      del metodo grafico manual de rectas limite, y con los 3 casos de
+%      estudio completos (sin clips, con 2 clips, con 3 clips).
+%==============================================================================
+\section{Resultados y discusion}\label{sec:resultados}
+
+A partir de los datos de posicion y velocidad obtenidos con Tracker 6.3.5 para
+los tres casos de estudio (sin clips, con 2 clips y con 3 clips, cada uno con
+tres repeticiones), se generaron las curvas de velocidad respecto al tiempo
+y se procesaron en Python 3.11.4. Los resultados del ajuste experimental se
+presentan en la seccion~\ref{sec:ajuste_experimental}, mientras que en la
+seccion~\ref{sec:analisis_comparativo} se realiza el analisis comparativo
+entre estos resultados y los tres modelos teoricos desarrollados en la
+seccion~\ref{sec:modelo} (caida libre, arrastre viscoso lineal y arrastre de
+Newton).
+
+\subsection{Analisis experimental}\label{sec:ajuste_experimental}
+
+La validacion de los modelos matematicos desarrollados en la
+Seccion~\ref{sec:modelo} requiere un analisis riguroso de las incertidumbres
+experimentales. Siguiendo los principios establecidos por
+Taylor~\cite{taylor1997}, ninguna medicion esta libre de incertidumbre, y la
+comparacion entre la teoria y la practica debe realizarse evaluando si los
+valores teoricos caen dentro de los intervalos de confianza experimentales.
+
+\subsubsection{Tratamiento estadistico y propagacion de errores}
+
+Al repetir el experimento tres veces bajo las mismas condiciones para cada
+caso, se observo una dispersion en los valores de la velocidad debido a
+errores aleatorios inherentes al proceso de diferenciacion numerica
+($v \approx \Delta x/\Delta t$) realizado por Tracker. Para cuantificar esta
+dispersion se utilizo el criterio de la \textbf{Desviacion Absoluta Maxima
+(d.a.m.)}~\cite{manualgrafico}. Dado que las tres repeticiones de cada caso
+no se muestrearon exactamente en los mismos instantes (variaciones propias
+del video a $30\text{ fps}$), las tres series se interpolaron sobre una
+malla de tiempo comun $t_i$ antes de promediar. Si $\bar{v}_i$ es el valor
+promedio (mejor estimacion) de la velocidad interpolada en el instante
+$t_i$, la incertidumbre $\delta v_i$ se definio como:
+
+\begin{equation}
+    \delta v_i = \max \left( | \bar{v}_i - v_{i,1} |,\ | \bar{v}_i - v_{i,2} |,\ | \bar{v}_i - v_{i,3} | \right)
+\end{equation}
+
+El resultado experimental se reporto en la forma estandar
+$v_i = \bar{v}_i \pm \delta v_i$. Es importante notar que el proceso de
+derivacion numerica amplifica el ruido de la posicion, resultando en barras
+de error ($\delta v_i$) proporcionalmente grandes, lo cual es consistente
+con la teoria de propagacion de errores~\cite{taylor1997}.
+
+\subsubsection{Ajuste por minimos cuadrados}
+
+Para un objeto en movimiento uniformemente acelerado, el modelo matematico
+predice una relacion lineal de la forma $v(t) = v_0 + at$. En esta version
+del analisis, en lugar del metodo grafico manual de rectas limite, la recta
+$v(t)=v_0+at$ se ajusto de forma objetiva mediante el \textbf{metodo de
+minimos cuadrados}, implementado en Python (\texttt{NumPy}). Para cada
+instante $t_i$ dentro del intervalo de validez lineal se minimizo la suma de
+los residuos cuadraticos:
+
+\begin{equation}
+    S(v_0,a) = \sum_{i=1}^{n}\left[\bar{v}_i - (v_0+at_i)\right]^2
+\end{equation}
+
+y la incertidumbre de la pendiente y la ordenada al origen se calcularon con
+las expresiones estandar de la regresion lineal~\cite{taylor1997}:
+
+\begin{equation}
+    \delta a = s_{\text{res}}\sqrt{\dfrac{n}{n\sum t_i^2-\left(\sum t_i\right)^2}}\, ,
+    \qquad
+    \delta v_0 = s_{\text{res}}\sqrt{\dfrac{\sum t_i^2}{n\sum t_i^2-\left(\sum t_i\right)^2}}
+\end{equation}
+
+donde $s_{\text{res}}$ es la desviacion estandar de los residuos del ajuste.
+El intervalo de validez de cada ajuste ($t\le T_{\text{corte}}$) se
+determino identificando visualmente el instante en el que los datos
+experimentales se desvian de la tendencia lineal, ya sea por el impacto con
+el suelo o por la aproximacion a la velocidad terminal.
+\\
+
+\textbf{Caso 0, sin clips:}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\linewidth]{figuras/velocidad_vs_tiempo_sinclips_minimos_cuadrados.png}
+  \caption{Velocidad del filtro de café sin clips, con barras de error (d.a.m.) y ajuste por mínimos cuadrados.}
+  \label{fig:sin_clips_ajuste}
+\end{figure}
+
+El ajuste por minimos cuadrados, restringido al intervalo
+$t\in[0,\,1.7]\text{ s}$ ($n=52$ puntos), arrojo:
+
+\begin{equation}
+    v(t) = (-0.826 \pm 0.067) + (-0.346 \pm 0.068)\,t \quad \text{[m/s]}, \qquad R^2 = 0.344
+\end{equation}
+
+Aplicando las reglas de cifras significativas y redondeo de
+Taylor~\cite{taylor1997}, la aceleracion experimental se reporta como:
+
+\begin{equation}
+    a_{exp}^{(0)} = -0.3 \pm 0.1 \text{ m/s}^2
+\end{equation}
+
+Para tiempos $t>1.7\text{ s}$ los datos experimentales se desvian de la
+tendencia lineal (rebote por el impacto con el suelo), por lo que la
+ecuacion empirica anterior solo describe la realidad fisica dentro de dicho
+intervalo. El valor de $R^2$, relativamente bajo, refleja la gran dispersion
+introducida por la diferenciacion numerica en un caso donde la aceleracion
+neta es pequena (la resistencia del aire casi compensa el peso incluso para
+el filtro solo).
+\\
+
+\textbf{Caso 1, con 2 clips:}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\linewidth]{figuras/velocidad_vs_tiempo_2clips_minimos_cuadrados.png}
+  \caption{Velocidad del filtro de café con 2 clips, con barras de error (d.a.m.) y ajuste por mínimos cuadrados.}
+  \label{fig:con2_clips_ajuste}
+\end{figure}
+
+El ajuste, restringido a $t\in[0,\,1.24]\text{ s}$ ($n=38$ puntos), arrojo:
+
+\begin{equation}
+    v(t) = (-1.034 \pm 0.076) + (-0.764 \pm 0.105)\,t \quad \text{[m/s]}, \qquad R^2 = 0.594
+\end{equation}
+
+por lo que la aceleracion experimental equivalente se reporta como:
+
+\begin{equation}
+    a_{exp}^{(1)} = -0.8 \pm 0.1 \text{ m/s}^2
+\end{equation}
+
+Para $t>1.24\text{ s}$ los datos se desvian de la tendencia lineal: la
+velocidad comienza a estabilizarse (aproximandose a la velocidad terminal) o
+presenta ruido por el impacto con el suelo.
+\\
+
+\textbf{Caso 2, con 3 clips:}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\linewidth]{figuras/velocidad_vs_tiempo_3clips_minimos_cuadrados.png}
+  \caption{Velocidad del filtro de café con 3 clips, con barras de error (d.a.m.) y ajuste por mínimos cuadrados.}
+  \label{fig:con3_clips_ajuste}
+\end{figure}
+
+El ajuste, restringido a $t\in[0,\,1.1]\text{ s}$ ($n=34$ puntos), arrojo:
+
+\begin{equation}
+    v(t) = (-0.969 \pm 0.084) + (-1.234 \pm 0.131)\,t \quad \text{[m/s]}, \qquad R^2 = 0.736
+\end{equation}
+
+por lo que la aceleracion experimental equivalente se reporta como:
+
+\begin{equation}
+    a_{exp}^{(2)} = -1.2 \pm 0.1 \text{ m/s}^2
+\end{equation}
+
+En este caso el intervalo de validez lineal es el mas corto de los tres
+($t\le 1.1\text{ s}$): al ser el caso con mayor peso, el objeto alcanza su
+velocidad terminal (y por tanto se aleja del comportamiento lineal) en menos
+tiempo, y tambien llega antes al suelo.
+\\
+
+La Tabla~\ref{tab:resumen_ajuste_lineal} resume los parametros obtenidos
+para los tres casos. Se observa que, conforme aumenta la masa del sistema
+(mas clips), la magnitud de la pendiente $a_{exp}$ crece de forma monotona,
+y el coeficiente de determinacion $R^2$ mejora, lo cual es consistente con
+una mayor relacion senal/ruido en los casos de caida mas rapida.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Resumen del ajuste lineal por minimos cuadrados, $v(t)=v_0+at$, para los tres casos de estudio.}
+  \label{tab:resumen_ajuste_lineal}
+  \begin{tabular}{@{}lccccc@{}}
+    \toprule
+    Caso & $m$ [g] & $v_0$ [m/s] & $a_{exp}$ [m/s$^2$] & $R^2$ & Intervalo de validez [s] \\
+    \midrule
+    Sin clips    & 0.93 & $-0.826 \pm 0.067$ & $-0.3 \pm 0.1$ & 0.344 & $[0,\,1.70]$ \\
+    Con 2 clips  & 2.01 & $-1.034 \pm 0.076$ & $-0.8 \pm 0.1$ & 0.594 & $[0,\,1.24]$ \\
+    Con 3 clips  & 2.55 & $-0.969 \pm 0.084$ & $-1.2 \pm 0.1$ & 0.736 & $[0,\,1.10]$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Analisis comparativo}\label{sec:analisis_comparativo}
+
+Con los datos promediados $\bar{v}(t)$ obtenidos en la
+seccion~\ref{sec:ajuste_experimental}, se realizo un analisis comparativo
+entre los resultados experimentales y los tres modelos teoricos
+desarrollados en la seccion~\ref{sec:modelo}:
+
+\begin{itemize}
+  \item \textbf{Caida libre} (sin resistencia del aire): $v(t) = -gt$, sin parametros libres.
+  \item \textbf{Arrastre viscoso lineal} (Caso 2, seccion~\ref{sec:region2}): $v(t) = -\dfrac{g}{p}\left(1-e^{-pt}\right)$, con $p=b/m$ como unico parametro libre.
+  \item \textbf{Arrastre de Newton} (Caso 3, seccion~\ref{sec:region3_newton}): $v(t) = -v_t\tanh\!\left(\dfrac{g}{v_t}t\right)$, con la velocidad terminal $v_t$ como unico parametro libre.
+\end{itemize}
+
+A diferencia del ajuste de la seccion~\ref{sec:ajuste_experimental}, aqui el
+parametro libre de cada modelo ($p$ o $v_t$) no describe una recta sino una
+curva no lineal (exponencial o tangente hiperbolica); por ello se ajusto
+mediante \textbf{minimos cuadrados no lineales} (rutina
+\texttt{scipy.optimize.curve\_fit} de Python), utilizando como referencia la
+velocidad promedio experimental $\bar{v}(t)$ de cada caso, ponderada por su
+incertidumbre $\delta v_i$. A partir del parametro $p$ ajustado se obtuvo el
+coeficiente de arrastre viscoso $b=pm$; a partir de $v_t$ se obtuvo la
+cantidad $c\rho A = 2mg/v_t^2$, que agrupa el coeficiente de arrastre, la
+densidad del aire y el area frontal del objeto (no separables con la
+instrumentacion disponible). Para la masa de cada caso se utilizaron los
+valores medidos $m_{filtro}=\cantidad{0.00093}{kg}$ y
+$m_{clip}=\cantidad{0.00054}{kg}$ (Tabla~\ref{tab:parametros}).
+
+Los resultados se muestran en la Figura~\ref{fig:comparacion_modelos} y se
+resumen en la Tabla~\ref{tab:resumen_modelos}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figuras/comparacion_modelos_teoricos.png}
+  \caption{Comparación entre los datos experimentales (promedio ± d.a.m.) y los tres modelos teóricos ajustados: caída libre, arrastre viscoso lineal y arrastre de Newton, para los tres casos de estudio.}
+  \label{fig:comparacion_modelos}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Coeficiente de determinacion $R^2$ y parametros fisicos ajustados para cada modelo teorico, en los tres casos de estudio.}
+  \label{tab:resumen_modelos}
+  \begin{tabular}{@{}lcccccc@{}}
+    \toprule
+     & \multicolumn{1}{c}{Caida libre} & \multicolumn{2}{c}{Arrastre lineal} & \multicolumn{2}{c}{Arrastre de Newton} \\
+    \cmidrule(lr){2-2}\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+    Caso & $R^2$ & $R^2$ & $b$ [kg/s] & $R^2$ & $v_t$ [m/s] ($c\rho A$ [kg/m]) \\
+    \midrule
+    Sin clips   & $-856.8$ & 0.690 & $7.77\times10^{-3}$ & 0.446 & $1.08$ $(1.56\times10^{-2})$ \\
+    Con 2 clips & $-239.7$ & 0.849 & $1.10\times10^{-2}$ & 0.788 & $1.75$ $(1.29\times10^{-2})$ \\
+    Con 3 clips & $-98.2$  & 0.912 & $1.26\times10^{-2}$ & 0.836 & $1.95$ $(1.32\times10^{-2})$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\textbf{Caida libre.} En los tres casos el modelo de caida libre se rechaza
+categoricamente: $R^2$ es fuertemente negativo (indica que el modelo ajusta
+peor que una simple recta horizontal en el promedio de los datos). Esto es
+fisicamente razonable: al tratarse de un objeto muy ligero
+($m\sim1\text{--}3\text{ g}$) y de area frontal relativamente grande (un
+filtro de papel), la resistencia del aire deja de ser despreciable practicamente
+desde el instante inicial de la caida, y el sistema se aproxima con rapidez
+a una velocidad terminal muy por debajo de la que predice $v(t)=-gt$.
+
+\textbf{Arrastre lineal vs.\ arrastre de Newton.} En los tres casos, el
+modelo de \textbf{arrastre lineal} describe mejor los datos experimentales
+que el de \textbf{arrastre de Newton} ($R^2$ mayor en los tres), aunque
+ambos modelos siguen razonablemente bien la forma general de la curva,
+incluyendo el acercamiento asintotico a la velocidad terminal. Esto sugiere
+que, en el intervalo de velocidades alcanzado por el experimento
+($\sim 1$--$2\text{ m/s}$), el regimen de arrastre del filtro de cafe se
+aproxima mas al regimen viscoso/laminar ($F\propto v$) que al turbulento
+($F\propto v^2$); sin embargo, dado que ambos $R^2$ son de magnitud
+comparable (particularmente en los casos con clips), no es posible
+descartar por completo el modelo de arrastre de Newton solo con este
+criterio, y un numero de Reynolds intermedio explicaria que ninguno de los
+dos modelos puros ajuste perfectamente.
+
+\textbf{Consistencia fisica de los parametros ajustados.} Tanto $b$
+(arrastre lineal) como $c\rho A$ (arrastre de Newton) se mantienen del mismo
+orden de magnitud en los tres casos (variando aproximadamente un factor de
+1.6 y 1.2, respectivamente, pese a que la masa varia por un factor de 2.7).
+Esto es consistente con la fisica del problema: ambos parametros dependen
+principalmente de la geometria del objeto (area frontal, forma), la cual es
+practicamente la misma en los tres casos (el mismo filtro de cafe, solo se
+le agregan clips que aportan masa pero modifican muy poco su area frontal
+efectiva), y no deberian depender fuertemente de la masa agregada. La
+variacion residual observada puede atribuirse a cambios menores en la
+orientacion o en el area efectiva del filtro al agregar los clips, asi como
+al ruido propio de la diferenciacion numerica discutido en la
+seccion~\ref{sec:ajuste_experimental}.
+
+\textbf{Mejora del ajuste con la masa.} Al igual que en el ajuste lineal de
+la seccion~\ref{sec:ajuste_experimental}, el $R^2$ de ambos modelos de
+arrastre mejora conforme aumenta la masa (mas clips). Esto se explica porque,
+al aumentar el peso, la aceleracion neta y las velocidades alcanzadas son
+mayores en comparacion con el ruido de medicion (que es aproximadamente del
+mismo orden absoluto en los tres casos), mejorando la relacion senal/ruido y,
+por tanto, la calidad del ajuste.
