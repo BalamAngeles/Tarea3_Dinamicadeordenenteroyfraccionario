@@ -1,0 +1,4 @@
+# Videos (demasiado grandes para GitHub)
+Videos/*.mp4
+Videos/**/*.mp4
+__pycache__/

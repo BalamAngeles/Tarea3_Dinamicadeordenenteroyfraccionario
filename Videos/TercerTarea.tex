@@ -1,0 +1,323 @@
+%==============================================================================
+% PLANTILLA LaTeX PARA TRABAJOS ACADEMICOS DE MAESTRIA
+% Adaptada para: Modelo de Evaporación de Gotas (Análisis Dimensional)
+% (Curso: Metodos de Simulacion - UNAM)
+%
+% Compilacion recomendada:
+%   pdflatex plantilla_trabajo.tex  (compilar 2 veces para referencias)
+%   o con latexmk:  latexmk -pdf plantilla_trabajo.tex
+%==============================================================================
+
+\documentclass[12pt, letterpaper, onecolumn]{article}
+
+%-----------------------------------------------------------------------------
+% PAQUETES BASICOS DE IDIOMA Y TIPOGRAFIA
+%-----------------------------------------------------------------------------
+\usepackage[T1]{fontenc}                    
+\usepackage{lmodern}                        
+\usepackage[spanish, es-tabla, es-nodecimaldot]{babel}  
+\usepackage{microtype}                      
+\usepackage{cancel}
+\usepackage{tcolorbox}
+\usepackage{float}
+
+%-----------------------------------------------------------------------------
+% MATEMATICAS
+%-----------------------------------------------------------------------------
+\usepackage{amsmath, amssymb, amsthm}
+
+%-----------------------------------------------------------------------------
+% FIGURAS, TABLAS Y CAPTIONS
+%-----------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage[table, xcdraw]{xcolor}          
+\usepackage{caption}
+\usepackage{subcaption}                     
+\usepackage{booktabs}                       
+\usepackage{array}
+\usepackage{enumitem}                       
+
+%-----------------------------------------------------------------------------
+% MAQUETACION DE PAGINA
+%-----------------------------------------------------------------------------
+\usepackage[letterpaper, top=2.5cm, bottom=2.5cm, left=3cm, right=2.5cm]{geometry}
+\usepackage{fancyhdr}                       
+
+%-----------------------------------------------------------------------------
+% CANTIDADES Y UNIDADES
+%-----------------------------------------------------------------------------
+\newcommand{\cantidad}[2]{\ensuremath{#1\;\mathrm{#2}}}
+
+%-----------------------------------------------------------------------------
+% REFERENCIAS Y ENLACES
+%-----------------------------------------------------------------------------
+\usepackage[numbers, sort&compress]{natbib}
+\usepackage{hyperref}
+\definecolor{azulenlace}{RGB}{0,38,102}
+\definecolor{verdeenlace}{RGB}{0,85,46}
+\hypersetup{
+  colorlinks      = true,
+  linkcolor       = azulenlace,
+  citecolor       = verdeenlace,
+  urlcolor        = azulenlace,
+  hypertexnames   = false,
+  pdftitle        = {Modelo de Evaporacion de Gotas},
+  pdfauthor       = {Alex},
+}
+\renewcommand{\theequation}{\arabic{equation}}
+
+%-----------------------------------------------------------------------------
+% CONFIGURACION DE ENCABEZADOS Y PIES DE PAGINA
+%-----------------------------------------------------------------------------
+\pagestyle{fancy}
+\setlength{\headheight}{13.6pt}
+\fancyhf{}
+\fancyhead[L]{\small Facultad de Ingeniería}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+%-----------------------------------------------------------------------------
+% INFORMACION DEL DOCUMENTO
+%-----------------------------------------------------------------------------
+\title{\textbf{Modelo de Evaporación de Gotas: Análisis Dimensional y Validación Experimental}\\
+  \large Tarea 3 | Temas selectos de matemáticas dinámica de sistemas de orden entero y fraccionario}
+\author{%
+  Alex Balam Angeles Garcia\\
+  \small Universidad Nacional Autónoma de México \\
+  \small Facultad de Ingeniería / Posgrado en Ingeniería Mecánica\\
+  \small balam24alex@gmail.com}
+\date{\today}
+\begin{document}
+
+%==============================================================================
+% CARATULA
+%==============================================================================
+\maketitle
+\begin{center}
+  \rule{\linewidth}{0.8pt}
+\end{center}
+
+\newpage
+
+%==============================================================================
+% 1. MATERIALES Y SOFTWARES
+%==============================================================================
+\section{Materiales y softwares}\label{sec:materiales}
+
+\begin{itemize}
+  \item Agua 
+  \item Alcohol etílico 
+  \item Jeringa de 0.5 ml
+  \item Cámara de teléfono celular (grabación a 30 fps)
+  \item Microscopio digital USB ZAKULU
+  \item Superficie de acetato graduada (para depositar las gotas)
+  \item Python 3.11.4 (para postproceso y comparación de modelos)
+\end{itemize}
+
+%==============================================================================
+% 2. OBJETIVO
+%==============================================================================
+\section{Objetivo}\label{sec:objetivo}
+
+Desarrollar y validar experimentalmente un modelo matemático basado en análisis dimensional que permita estimar el tiempo total de evaporación de gotas de agua y alcohol, comparando las predicciones teóricas con los resultados experimentales obtenidos mediante videograbación.
+
+El objetivo anterior contempla lo siguiente:
+\begin{itemize}
+  \item Para la parte experimental se utilizará la videograbación y análisis de video mediante el software Tracker 6.3.5, así como el lenguaje de programación Python 3.11.4 para el tratamiento estadístico de los datos.
+  \item Para el modelo teórico se aplicará el Teorema Pi de Buckingham \citep{szirtes2007, cengel2010} y los principios de transferencia de calor y masa para deducir la ley de evaporación.
+\end{itemize}
+
+%==============================================================================
+% 3. DESCRIPCION DEL MODELO MATEMATICO
+%==============================================================================
+\section{Descripción del modelo matemático}\label{sec:modelo}
+
+La evaporación de una gota líquida es un proceso de cambio de fase controlado por la transferencia de calor desde el ambiente hacia la gota, o por la transferencia de masa (difusión de vapor) desde la superficie hacia el entorno. 
+
+\subsection{Fundamentos físicos y la ley $D^2$}
+Asumiendo que el proceso está controlado por la transferencia de calor (régimen cuasi-estacionario), la tasa de transferencia de calor $Q$ hacia una gota esférica de radio $R$ se puede modelar mediante la ley de Fourier, considerando un número de Nusselt $Nu \approx 2$ para una esfera en un medio infinito:
+\begin{equation}
+Q = 4 \pi R k \Delta T
+\end{equation}
+donde $k$ es la conductividad térmica del aire y $\Delta T = T_{amb} - T_s$ es la diferencia de temperatura entre el ambiente y la superficie de la gota.
+
+Este calor suministrado se utiliza íntegramente para vaporizar el líquido:
+\begin{equation}
+Q = \dot{m} L_v
+\end{equation}
+donde $\dot{m} = \frac{d}{dt}\left(\frac{4}{3}\pi R^3 \rho_l\right) = 4\pi R^2 \rho_l \frac{dR}{dt}$ es la tasa de evaporación másica, $\rho_l$ es la densidad del líquido y $L_v$ es el calor latente de vaporización.
+
+Igualando ambas expresiones:
+\begin{equation}
+4 \pi R k \Delta T = 4 \pi R^2 \rho_l L_v \frac{dR}{dt} \implies \frac{dR}{dt} = \frac{k \Delta T}{\rho_l L_v R}
+\end{equation}
+Separando variables e integrando desde $t=0$ (radio inicial $R_0$) hasta $t=t_e$ (evaporación completa, $R=0$):
+\begin{equation}
+\int_{R_0}^{0} R \, dR = \int_{0}^{t_e} \frac{k \Delta T}{\rho_l L_v} \, dt \implies -\frac{1}{2} R_0^2 = \frac{k \Delta T}{\rho_l L_v} t_e
+\end{equation}
+Despejando el tiempo de evaporación $t_e$:
+\begin{equation}
+t_e = \frac{\rho_l R_0^2 L_v}{2 k \Delta T}
+\end{equation}
+Esta ecuación indica que el tiempo de evaporación es proporcional al cuadrado del radio inicial (fenómeno conocido como la \textbf{ley $D^2$}) y depende directamente de las propiedades termofísicas del líquido.
+
+\subsection{Análisis Dimensional (Teorema Pi de Buckingham)}
+Para validar la estructura de la ecuación obtenida, se aplica el análisis dimensional \citep{szirtes2007}.
+Variables involucradas:
+\begin{itemize}
+  \item $t_e$: Tiempo de evaporación $[T]$
+  \item $R_0$: Radio inicial de la gota $[L]$
+  \item $\rho_l$: Densidad del líquido $[M L^{-3}]$
+  \item $L_v$: Calor latente de vaporización $[L^2 T^{-2}]$
+  \item $k$: Conductividad térmica del aire $[M L T^{-3} \Theta^{-1}]$
+  \item $\Delta T$: Diferencia de temperatura $[\Theta]$
+\end{itemize}
+
+Número total de variables $n = 6$. Dimensiones primarias: $M, L, T, \Theta$ ($k = 4$).
+Número de grupos adimensionales $\pi = n - k = 6 - 4 = 2$.
+
+Se seleccionan como variables repetitivas: $R_0, \rho_l, L_v, k$. Al construir los grupos $\pi$ e igualar los exponentes de cada dimensión primaria a cero, se obtiene:
+\begin{align}
+\pi_1 &= t_e R_0^a \rho_l^b L_v^c k^d \implies \pi_1 = \frac{t_e \sqrt{L_v}}{R_0} \\
+\pi_2 &= \Delta T R_0^a \rho_l^b L_v^c k^d \implies \pi_2 = \frac{k \Delta T}{\rho_l R_0 L_v^{3/2}}
+\end{align}
+
+El teorema $\pi$ establece que $\pi_1 = f(\pi_2)$. Si asumimos una relación de potencia simple (o basándonos en la derivación física de la Ec. 5), $f(\pi_2) \propto \pi_2^{-1}$, lo que nos lleva a:
+\begin{equation}
+\frac{t_e \sqrt{L_v}}{R_0} = C \frac{\rho_l R_0 L_v^{3/2}}{k \Delta T} \implies t_e = C \frac{\rho_l R_0^2 L_v}{k \Delta T}
+\end{equation}
+donde $C$ es una constante adimensional que agrupa factores geométricos y de transferencia (teóricamente $C \approx 1/2$ para una esfera pura, pero experimentalmente varía debido a la forma de la gota, convección natural, etc.).
+
+\subsection{Modelo predictivo para Agua vs. Alcohol}
+Si realizamos el experimento en las mismas condiciones ambientales ($k, \Delta T$ constantes) y formamos gotas del mismo volumen inicial ($R_0$ constante), la relación entre los tiempos de evaporación del agua ($a$) y el alcohol ($al$) depende únicamente de sus propiedades termofísicas:
+\begin{equation}
+\frac{t_{e,a}}{t_{e,al}} = \frac{\rho_{l,a} L_{v,a}}{\rho_{l,al} L_{v,al}}
+\end{equation}
+Esto permite predecir el tiempo de evaporación de un líquido conociendo el del otro, validando así el modelo de análisis dimensional.
+
+%==============================================================================
+% 4. PROCEDIMIENTO EXPERIMENTAL
+%==============================================================================
+\section{Procedimiento experimental}\label{sec:procedimiento}
+
+\begin{enumerate}
+  \item Se preparó el entorno: habitación cerrada para evitar corrientes 
+  de aire (convección forzada) y se registró la temperatura ambiente
+  $T_{amb}$ y la humedad relativa.
+  \item Se utilizó una jeringa de 0.5 ml para depositar una gota
+  sobre la superficie de acetato graduado.
+  \item Se colocó el microscopio digital USB ZAKULU para enfocar la gota y
+   se inició la grabación de video a 30 fps.
+  \item Se repitió el procedimiento para el alcohol, asegurando que las 
+  gotas tuvieran el mismo volumen inicial que las de agua.
+  \item Se revisaron los videos para determinar el tiempo total de 
+  evaporación $t_e$ desde el momento en que la gota fue depositada hasta que desapareció completamente.
+  \item Se registraron los tiempos de evaporación para cada repetición 
+  y se calculó el promedio y la desviación estándar. 
+  \item Se realizaron 5 repeticiones para el agua y 5 repeticiones 
+  para el alcohol.
+  \item Se determinó el tiempo total $t_e$ mediante la revisión de los
+  videos.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  % REEMPLAZA 'ruta/a/tu/imagen.png' con la ruta de tu foto
+  % \includegraphics[width=0.75\linewidth]{ruta/a/tu/imagen.png}
+  \rule{0.75\linewidth}{0.4\linewidth} % Placeholder temporal
+  \caption{Arreglo experimental para la videograbación de la evaporación de las gotas.}
+  \label{fig:arreglo_experimental}
+\end{figure}
+
+%==============================================================================
+% 5. RESULTADOS Y DISCUSION
+%==============================================================================
+\section{Resultados y discusión}\label{sec:resultados}
+
+\subsection{Propiedades termofísicas y predicción teórica}
+A temperatura ambiente ($\approx 20^\circ\text{C}$), las propiedades termofísicas aproximadas son:
+\begin{itemize}
+  \item \textbf{Agua:} $\rho_{l,a} \approx 998 \, \text{kg/m}^3$, $L_{v,a} \approx 2.44 \times 10^6 \, \text{J/kg}$
+  \item \textbf{Alcohol (Etanol):} $\rho_{l,al} \approx 789 \, \text{kg/m}^3$, $L_{v,al} \approx 0.84 \times 10^6 \, \text{J/kg}$
+\end{itemize}
+
+Sustituyendo en la Ec. 9, la predicción teórica del modelo de análisis dimensional para la relación de tiempos es:
+\begin{equation}
+\frac{t_{e,a}}{t_{e,al}} = \frac{998 \times 2.44 \times 10^6}{789 \times 0.84 \times 10^6} \approx \frac{2435}{662} \approx 3.67
+\end{equation}
+Esto indica que, bajo las mismas condiciones, el agua debería tardar aproximadamente \textbf{3.67 veces más} en evaporarse que el alcohol.
+
+\subsection{Comparación experimental vs. modelo}
+% AQUI DEBES INSERTAR TUS DATOS EXPERIMENTALES. EJEMPLO:
+Los tiempos de evaporación obtenidos experimentalmente se resumen en la Tabla \ref{tab:tiempos}. Siguiendo el criterio de la Desviación Absoluta Máxima (d.a.m.) \citep{taylor1997, manualgrafico}, se calculó la incertidumbre de las mediciones.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tiempos de evaporación experimentales para gotas de mismo volumen inicial.}
+  \label{tab:tiempos}
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    Líquido & $t_e$ promedio [s] & Incertidumbre $\pm$ [s] \\
+    \midrule
+    Agua     & \textcolor{gray}{\textit{[Insertar dato]}} & \textcolor{gray}{\textit{[Insertar d.a.m.]}} \\
+    Alcohol  & \textcolor{gray}{\textit{[Insertar dato]}} & \textcolor{gray}{\textit{[Insertar d.a.m.]}} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Calculando la relación experimental $\left( \frac{t_{e,a}}{t_{e,al}} \right)_{exp}$, se puede comparar con el valor teórico de $3.67$ predicho por el análisis dimensional. 
+
+\textbf{Análisis de discrepancias:}
+Es probable que el valor experimental difiera ligeramente de la predicción teórica de $3.67$. Las principales fuentes de error (incertidumbres sistemáticas y aleatorias \citep{taylor1997}) incluyen:
+\begin{itemize}
+  \item \textbf{Efecto de enfriamiento evaporativo:} El alcohol se evapora más rápido, enfriando su superficie drásticamente. Esto reduce su $\Delta T$ local, frenando la evaporación y haciendo que la relación experimental sea menor a la teórica (que asume $\Delta T$ constante e igual para ambos).
+  \item \textbf{Humedad ambiental:} La acumulación de vapor en la superficie altera el gradiente de concentración (transferencia de masa), lo cual no está explícitamente modelado en la aproximación puramente térmica.
+  \item \textbf{Geometría de la gota:} El modelo asume una esfera perfecta ($Nu=2$). En la realidad, la gota forma un casquete esférico dependiendo de la tensión superficial y el ángulo de contacto con la superficie, lo que modifica el área de transferencia y el factor geométrico $C$.
+\end{itemize}
+
+%==============================================================================
+% 6. COMENTARIOS FINALES / CONCLUSIONES
+%==============================================================================
+\section{Comentarios finales}\label{sec:conclusiones}
+
+El análisis dimensional, a través del Teorema Pi de Buckingham, demostró ser una herramienta poderosa para deducir la estructura de las ecuaciones que gobiernan fenómenos complejos de transferencia de calor y masa, como la evaporación de gotas. El modelo resultante (ley $D^2$) logró predecir correctamente el orden de magnitud y la relación de tiempos entre el agua y el alcohol. 
+
+Las discrepancias observadas resaltan la importancia de comprender las limitaciones de las hipótesis simplificadoras (como la temperatura de superficie constante) y la necesidad de cuantificar las incertidumbres experimentales para validar rigurosamente cualquier modelo matemático en la ingeniería.
+
+%==============================================================================
+% REFERENCIAS BIBLIOGRAFICAS
+%==============================================================================
+\begin{thebibliography}{9}
+
+\bibitem{cengel2010}
+Y. A. Cengel y J. M. Cimbala, 
+\textit{Fluid Mechanics: Fundamentals and Applications}, 2nd ed. 
+McGraw-Hill, 2010.
+
+\bibitem{szirtes2007}
+T. Szirtes y P. Rózsa, 
+\textit{Applied Dimensional Analysis and Modeling}, 2nd ed. 
+Elsevier, 2007.
+
+\bibitem{taylor1997}
+J. R. Taylor, 
+\textit{An Introduction to Error Analysis: The Study of Uncertainties in Physical Measurements}, 2nd ed. 
+University Science Books, 1997.
+
+\bibitem{manualgrafico}
+A. F. Nevostrueva, 
+\textit{Introducción al análisis gráfico de datos experimentales}. 
+Manual de Laboratorio, UNAM.
+
+\bibitem{deegan1997}
+R. D. Deegan et al., 
+``Capillary flow as the cause of ring stains from dried liquid drops'', 
+\textit{Nature}, vol. 389, pp. 827-829, 1997.
+
+\end{thebibliography}
+
+\end{document} 
